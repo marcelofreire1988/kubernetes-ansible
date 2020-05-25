@@ -1,0 +1,43 @@
+- name: Docker install
+  shell: curl -fsSL https://get.docker.com | bash - 
+  
+- name: Add kubernetes repo keys
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg 
+    state: present
+
+- name: Add kubernetes repo
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Install kubeadm, kubelet and kubectl packages.
+  apt:
+    name: "{{ packages }}" 
+  vars:
+    packages:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+
+- name: Get docker group driver
+  shell: docker info | grep -i cgroup
+
+- name: Change the docker groupdriver
+  shell: sed -i "s/cgroup-driver=systemd/cgroup-driver=cgroupfs/g" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf        
+
+- name: Disabling Swap on all nodes
+  shell: swapoff -a
+
+- name: Commenting Swap entries in /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '(.*swap*)'
+    replace: '#\1'
+
+- name: Reload systemctl
+  shell: systemctl daemon-reload
+
+- name: Restart kubelet service 
+  shell: systemctl restart kubelet

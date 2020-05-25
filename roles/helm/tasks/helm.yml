@@ -1,0 +1,8 @@
+- name: Install HELM 3
+  shell: curl -fsSL "{{ url_helm  }}" | bash - 
+  register: helm_install
+
+- name: Testing helm
+  command:
+    helm version
+

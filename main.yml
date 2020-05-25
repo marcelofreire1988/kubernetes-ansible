@@ -1,0 +1,30 @@
+# Digita yes no fingerprint
+- hosts: all 
+  become: yes
+  user: ubuntu
+  gather_facts: no
+  pre_tasks:
+    - name: 'repo update'
+      raw: 'apt-get update'
+    - name: 'install python'
+      raw: 'apt-get install -y python'
+  roles:
+    - { role: install-kubernetes, tags: ["install_kubernetes_role"] } 
+
+- hosts: kubernetes-master
+  become: yes
+  user: ubuntu
+  roles: 
+    - { role: create-cluster, tags: ["create_cluster_role"] }
+
+- hosts: kubernetes-workers
+  become: yes
+  user: ubuntu
+  roles:
+    - { role: join-workers, tags: ["join_workers_role"] }
+
+- hosts: kubernetes-master
+  become: yes
+  user: ubuntu
+  roles:
+    - { role: helm, tags: ["install_helm_role"]}
